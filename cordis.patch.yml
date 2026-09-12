@@ -1,0 +1,4 @@
+# zcode-usage-stats(仿zcode的使用统计):把本插件 insert 进 DSH Loader entries
+- insert:
+  - id: usage-stats
+    name: zcode-usage-stats
