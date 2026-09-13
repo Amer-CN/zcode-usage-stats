@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════════════════════════
+   使用统计 · 设置面板样式
+   排版：固定字阶 / 对比度达标 / 间距阶梯（详见下）
+     · 固定 px 字阶（产品界面不用 fluid type），1.125–1.2 级差
+     · 正文对比度 ≥ 4.5:1，次要文字 ≥ 3:1
+     · 行高：正文 1.5 / 标题 1.25 / 说明 1.4
+     · 间距取自 4 的倍数阶梯：4 8 12 16 24 32
+     · 数字统一 tabular-nums 对齐
+   图表配色：类目色 = 模型身份（跨色相），序数色 = 用量深浅（单色相明度阶）
+   容器宽度自适应：图表按实测宽度 1:1 出图，不做缩放
+   ═══════════════════════════════════════════════════════════════ */
+
+.ust-root {
+	/* 浅色（默认） */
+	--ink: #191918;
+	--muted: #5F5E59;
+	--faint: #86857F;
+	--rule: #C4C3BC;
+	--surface: #F7F6F3;
+	--hover: #EDECE7;
+	--l0: #191918; --l1: #3F3E3A; --l2: #5A5954;
+	--l3: #78776F; --l4: #93928A; --l5: #A9A8A0;
+	--quiet: #C4C3BC;
+	--tip-bg: #191918; --tip-fg: #F7F6F3;
+	/* 类目色：6 个跨色相，承载模型身份；两两色距 >=60 保证一眼可分 */
+	--c0: #C62828; --c1: #C77800; --c2: #2F7D4F; --c3: #1D5FD0; --c4: #6D4AC4; --c5: #0E7C86;
+	/* 序数色：单色相蓝阶，明度 = 用量大小（浅→深） */
+	--q1: #9CBEE6; --q2: #5B8FD4; --q3: #2C6BC4; --q4: #123C74;
+
+	display: flex; flex-direction: column; gap: 32px;
+	padding: 0; color: var(--ink);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+	font-size: 13px; line-height: 1.5;
+	font-variant-numeric: tabular-nums;
+	-webkit-font-smoothing: antialiased;
+}
+body[data-ds-dark-theme] .ust-root {
+	--ink: #F2F1ED;
+	--muted: #A5A49E;
+	--faint: #74736E;
+	--rule: #3B3A35;
+	--surface: #24231F;
+	--hover: #2C2B27;
+	--l0: #F2F1ED; --l1: #D6D5CF; --l2: #B4B3AD;
+	--l3: #8F8E88; --l4: #6A6963; --l5: #4A4944;
+	--quiet: #35342F;
+	--tip-bg: #F2F1ED; --tip-fg: #191918;
+	/* 类目色（暗色主题）：同 6 色相提亮，暗底对比 >=3:1 */
+	--c0: #FF6B6B; --c1: #FFA53D; --c2: #52C77A; --c3: #5B9DFF; --c4: #A78BFA; --c5: #2DD4BF;
+	/* 序数色（暗色主题）：越亮 = 用量越大 */
+	--q1: #2A4C7A; --q2: #3F6EA8; --q3: #5F97D4; --q4: #9CC4EE;
+}
+.ust-root *, .ust-root *::before, .ust-root *::after { box-sizing: border-box; }
+.ust-root svg text { font-family: inherit; font-variant-numeric: tabular-nums; }
+
+/* ── 排版层级 ────────────────────────────────────────────── */
+.ust-page-title { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; color: var(--ink); }
+.ust-h2 { margin: 0; font-size: 15px; font-weight: 650; line-height: 1.3; letter-spacing: -.005em; color: var(--ink); }
+.ust-sub { margin: 3px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.ust-src { margin: 12px 0 0; font-size: 10px; font-weight: 600; line-height: 1.4; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+
+/* ── 顶部：标题 + 时间范围 ───────────────────────────────── */
+.ust-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 16px; }
+.ust-rangebox { position: relative; }
+.ust-tabs { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.ust-tab {
+	padding: 4px 9px; font-size: 12px; font-weight: 600; line-height: 1.4;
+	color: var(--muted); border-radius: 6px; cursor: pointer;
+	transition: background-color .15s ease, color .15s ease;
+}
+.ust-tab:hover { background: var(--hover); color: var(--ink); }
+.ust-tab.active { background: var(--ink); color: var(--surface); }
+body[data-ds-dark-theme] .ust-tab.active { background: var(--ink); color: #191918; }
+.ust-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+/* ── 指标组 ─────────────────────────────────────────────── */
+.ust-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 16px 20px; }
+.ust-metric { border-top: 1px solid var(--rule); padding-top: 10px; min-width: 0; }
+.ust-metric-label {
+	display: flex; align-items: center; gap: 5px;
+	font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: .04em;
+	color: var(--muted); text-transform: uppercase;
+}
+.ust-metric-label svg { width: 11px; height: 11px; flex: none; opacity: .85; }
+.ust-metric-value { margin-top: 6px; font-size: 25px; font-weight: 700; line-height: 1.15; letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere; }
+.ust-metric-value.is-text { font-size: 15px; font-weight: 650; line-height: 1.35; letter-spacing: 0; overflow-wrap: anywhere; hyphens: auto; }
+.ust-metric-sub { margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+
+/* ── 图表区块 ───────────────────────────────────────────── */
+.ust-block { display: flex; flex-direction: column; }
+.ust-block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.ust-block-head .ust-tabs { gap: 2px; }
+
+/* 图表容器：等实测宽度后 1:1 出图 */
+.ust-plot { width: 100%; }
+.ust-plot svg { display: block; width: 100%; height: auto; }
+.ust-plot.is-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; cursor: pointer; }
+.ust-plot.is-scroll svg { width: auto; max-width: none; }
+.ust-plot.is-scroll::-webkit-scrollbar { height: 6px; }
+.ust-plot.is-scroll::-webkit-scrollbar-track { background: transparent; }
+.ust-plot.is-scroll::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+.ust-plot.is-scroll::-webkit-scrollbar-thumb:hover { background: var(--faint); }
+
+/* ── 图表内的图形语法 ───────────────────────────────────── */
+.ust-hitcell { fill: transparent; cursor: pointer; }
+.ust-hitband { fill: transparent; cursor: pointer; }
+.ust-axis { font-size: 11px; font-weight: 500; fill: var(--muted); }
+.ust-axis-strong { font-size: 11px; font-weight: 650; fill: var(--ink); }
+.ust-grid { stroke: var(--rule); stroke-width: 1; }
+.ust-baseline { stroke: var(--faint); stroke-width: 1; }
+.ust-floor-tick { stroke: var(--rule); stroke-width: 1; }
+.ust-hair { fill: none; stroke-width: 2.7; stroke-linejoin: round; stroke-linecap: round; }
+.ust-dot { stroke: none; }
+.ust-dot-quiet { fill: var(--quiet); }
+.ust-cursor { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.ust-hit { fill: transparent; cursor: crosshair; }
+.ust-callout { font-size: 11px; font-weight: 700; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.ust-peak-ring { fill: none; stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; }
+.ust-tick { stroke-width: 3.6; stroke-linecap: round; pointer-events: none; }
+.ust-tickmark { fill: var(--faint); }
+.ust-caption { font-size: 10px; font-weight: 600; letter-spacing: .06em; fill: var(--faint); text-transform: uppercase; }
+
+/* 类目色（模型身份）：填充 / 描边 / 圆点三套，色相区分模型 */
+.ust-cf0 { fill: var(--c0); } .ust-cf1 { fill: var(--c1); } .ust-cf2 { fill: var(--c2); }
+.ust-cf3 { fill: var(--c3); } .ust-cf4 { fill: var(--c4); } .ust-cf5 { fill: var(--c5); }
+.ust-cs0 { stroke: var(--c0); } .ust-cs1 { stroke: var(--c1); } .ust-cs2 { stroke: var(--c2); }
+.ust-cs3 { stroke: var(--c3); } .ust-cs4 { stroke: var(--c4); } .ust-cs5 { stroke: var(--c5); }
+.ust-cb0 { background: var(--c0); } .ust-cb1 { background: var(--c1); } .ust-cb2 { background: var(--c2); }
+.ust-cb3 { background: var(--c3); } .ust-cb4 { background: var(--c4); } .ust-cb5 { background: var(--c5); }
+
+/* 序数色（用量深浅）：单色相，明度即数值 */
+.ust-qf1 { fill: var(--q1); } .ust-qf2 { fill: var(--q2); } .ust-qf3 { fill: var(--q3); } .ust-qf4 { fill: var(--q4); }
+.ust-qs1 { stroke: var(--q1); } .ust-qs2 { stroke: var(--q2); } .ust-qs3 { stroke: var(--q3); } .ust-qs4 { stroke: var(--q4); }
+.ust-qb1 { background: var(--q1); } .ust-qb2 { background: var(--q2); } .ust-qb3 { background: var(--q3); } .ust-qb4 { background: var(--q4); }
+
+/* 明度阶梯（明度即数据：最重要 = 对比度最高） */
+.ust-f0 { fill: var(--l0); } .ust-f1 { fill: var(--l1); } .ust-f2 { fill: var(--l2); }
+.ust-f3 { fill: var(--l3); } .ust-f4 { fill: var(--l4); } .ust-f5 { fill: var(--l5); }
+.ust-s0 { stroke: var(--l0); } .ust-s1 { stroke: var(--l1); } .ust-s2 { stroke: var(--l2); }
+.ust-s3 { stroke: var(--l3); } .ust-s4 { stroke: var(--l4); } .ust-s5 { stroke: var(--l5); }
+.ust-b0 { background: var(--l0); } .ust-b1 { background: var(--l1); } .ust-b2 { background: var(--l2); }
+.ust-b3 { background: var(--l3); } .ust-b4 { background: var(--l4); } .ust-b5 { background: var(--l5); }
+
+/* ── 色阶图例（热力图：少 → 多） ───────────────────────── */
+.ust-scale { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+.ust-scale-lab { font-size: 11px; font-weight: 600; color: var(--muted); }
+.ust-scale-sw { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ── 模型列表 ───────────────────────────────────────────── */
+.ust-models { list-style: none; margin: 0; padding: 0; }
+.ust-model {
+	display: flex; align-items: center; justify-content: space-between; gap: 12px;
+	padding: 9px 0; border-bottom: 1px solid var(--rule); cursor: default;
+}
+.ust-model:last-child { border-bottom: 0; }
+.ust-model-name { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
+.ust-model-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ust-model-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.ust-model-val { flex: none; font-size: 13px; font-weight: 650; color: var(--ink); }
+.ust-model-sub { flex: none; font-size: 12px; color: var(--muted); }
+.ust-model-row { display: flex; align-items: baseline; gap: 10px; }
+
+/* ── 图表下方的图例（可点击显隐） ───────────────────────── */
+.ust-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; }
+.ust-legend-item {
+	display: flex; align-items: center; gap: 7px;
+	font-size: 12px; font-weight: 550; line-height: 1.5; color: var(--muted);
+	cursor: pointer; transition: color .15s ease, opacity .15s ease;
+}
+.ust-legend-item:hover { color: var(--ink); }
+.ust-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+/* ── 环形图 ─────────────────────────────────────────────── */
+.ust-donut-wrap { display: flex; flex-direction: column; gap: 16px; }
+.ust-donut { position: relative; width: 168px; height: 168px; margin: 4px auto 0; flex: none; }
+.ust-donut svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.ust-donut-center {
+	position: absolute; inset: 0; display: flex; flex-direction: column;
+	align-items: center; justify-content: center; pointer-events: none;
+}
+.ust-donut-center .num { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; color: var(--ink); }
+.ust-donut-center .lab { margin-top: 2px; font-size: 10px; font-weight: 600; letter-spacing: .1em; color: var(--muted); }
+
+/* ── 提示条 ─────────────────────────────────────────────── */
+.ust-warn {
+	padding: 10px 14px; font-size: 12px; line-height: 1.5; color: var(--ink);
+	background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+}
+
+/* ── 底部：页脚 + 按钮 ─────────────────────────────────── */
+.ust-footer {
+	display: flex; align-items: center; justify-content: space-between; gap: 16px;
+	margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--rule);
+}
+.ust-meta { font-size: 12px; line-height: 1.5; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ust-actions { display: flex; justify-content: flex-end; }
+.ust-btn {
+	display: inline-flex; align-items: center; gap: 7px;
+	padding: 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.4;
+	letter-spacing: .01em; color: var(--ink);
+	background: var(--surface); border: 1px solid var(--rule);
+	border-radius: 8px; cursor: pointer;
+	transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.ust-btn:hover:not(:disabled) { background: var(--hover); border-color: var(--faint); }
+.ust-btn:active:not(:disabled) { background: var(--rule); }
+.ust-btn:disabled { opacity: .55; cursor: progress; }
+.ust-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ust-btn--primary { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+body[data-ds-dark-theme] .ust-btn--primary { color: #191918; }
+.ust-btn--primary:hover:not(:disabled) { background: var(--ink); border-color: var(--faint); }
+.ust-btn--ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.ust-btn--ghost:hover:not(:disabled) { background: var(--hover); border-color: var(--rule); color: var(--ink); }
+.ust-btn-ico { display: inline-flex; width: 13px; height: 13px; }
+.ust-btn-ico svg { width: 13px; height: 13px; }
+.ust-btn-ico.is-spin { animation: ustSpin 900ms linear infinite; }
+@keyframes ustSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ust-btn-ico.is-spin { animation: none; } }
+
+/* ── 自定义区间面板 ─────────────────────────────────────── */
+.ust-custom {
+	position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+	display: flex; flex-direction: column; gap: 10px;
+	min-width: 272px; padding: 14px;
+	background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+}
+.ust-custom-row { display: flex; align-items: center; gap: 8px; }
+.ust-custom-sep { font-size: 12px; color: var(--muted); }
+.ust-custom-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.ust-date {
+	flex: 1; min-width: 0; padding: 6px 10px;
+	font-family: inherit; font-size: 12px; color: var(--ink);
+	background: transparent; border: 1px solid var(--rule); border-radius: 8px;
+}
+.ust-date:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; border-color: transparent; }
+.ust-date::-webkit-calendar-picker-indicator { filter: none; opacity: .6; cursor: pointer; }
+body[data-ds-dark-theme] .ust-date::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .7; }
+
+/* ── 浮动提示 ───────────────────────────────────────────── */
+.ust-tip {
+	position: fixed; z-index: 10000; pointer-events: none;
+	max-width: 260px; padding: 9px 12px;
+	font-size: 12px; line-height: 1.45;
+	color: var(--tip-fg); background: var(--tip-bg);
+	border-radius: 8px;
+}
+.ust-tip-title { font-weight: 700; }
+.ust-tip-body { margin-top: 2px; opacity: .75; }
+.ust-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 5px; }
+.ust-tip-row:first-of-type { margin-top: 7px; }
+.ust-tip-key { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.ust-tip-key span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ust-tip-swatch { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.ust-tip-val { flex: none; opacity: .75; }
+
+/* ── 载入 / 空态 ────────────────────────────────────────── */
+.ust-placeholder { padding: 32px 0; font-size: 13px; line-height: 1.5; color: var(--muted); text-align: center; }
+.ust-skeleton {
+	height: 12px; margin-top: 10px; border-radius: 6px;
+	background: var(--hover); animation: ustPulse 1.4s ease-in-out infinite;
+}
+@keyframes ustPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* ── 动画（150–250ms，只表达状态，不做装饰） ────────────── */
+.ust-fade { animation: ustFade .24s ease-out both; }
+@keyframes ustFade { from { opacity: 0; } }
+.ust-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ustDraw .5s ease-out both; }
+@keyframes ustDraw { to { stroke-dashoffset: 0; } }
+.ust-pop { transform-box: fill-box; transform-origin: center; animation: ustPop .22s ease-out both; }
+@keyframes ustPop { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+	.ust-fade, .ust-draw, .ust-pop, .ust-skeleton { animation: none; }
+	.ust-draw { stroke-dasharray: none; stroke-dashoffset: 0; }
+}

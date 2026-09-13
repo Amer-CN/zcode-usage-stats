@@ -43,8 +43,10 @@
 前置：已安装 `@deepseek-ai/dsh`（及 DSH 插件命令依赖的 `pnpm`）。
 
 ```bash
-dsh plugin --profile web add zcode-usage-stats
+dsh plugin --profile web add github:Amer-CN/zcode-usage-stats
 ```
+
+> 包发布到 npm 后，可改用 `dsh plugin --profile web add zcode-usage-stats`。
 
 安装后重启 DSH 进程，打开 **设置 → 使用统计** 即可看到统计页面。
 
@@ -108,12 +110,43 @@ zcode-usage-stats/
 ├── assets/
 │   ├── usage-stats.png   # 浅色主题截图
 │   └── usage-stats2.png  # 深色主题截图
+├── build/
+│   ├── body.js           # 前端真源：界面 + 手写 SVG 图表
+│   ├── panel.css         # 前端真源：样式与配色变量
+│   └── assemble.cjs      # 合成脚本：body.js + panel.css → client.new.js
+├── tests/
+│   ├── acceptance.sh     # 验收门禁：15 项检查（一条命令跑完）
+│   ├── harness.cjs       # 渲染挂具：模拟容器宽度渲染出预览 HTML
+│   ├── assert.cjs        # 几何断言：三张图的尺寸/可读性
+│   ├── contrast.cjs      # WCAG 对比度核算（明暗两套）
+│   ├── preset-conformance.cjs  # custom 色板合规校验
+│   └── preview-*.html    # 渲染产物（gitignore）
 └── lib/
     ├── index.mjs         # 宿主侧：扫描全历史会话 + 聚合 + 双层缓存 + API
-    └── client.js          # 前端：设置页界面 + 手写 SVG 图表
+    └── client.js         # 前端合成产物（勿直接编辑，见「从源码构建」）
 ```
 
 </details>
+
+## 🛠️ 从源码构建
+
+`lib/client.js` 是合成产物，**请勿直接编辑**。前端真源在 `build/`：
+
+```bash
+# 1. 编辑 build/body.js（界面 + 图表）与 build/panel.css（样式 + 配色变量）
+# 2. 合成
+node build/assemble.cjs
+
+# 3. 用合成结果覆盖部署文件
+cp build/client.new.js lib/client.js
+
+# 4. 验收（15 项必须全过）
+bash tests/acceptance.sh
+```
+
+验收脚本会按真实面板宽度渲染出预览 HTML（`tests/preview-*.html`）并跑几何断言、WCAG 对比度与色板合规检查。默认读取本机 `~/.dsh` 下的用量缓存；可用 `USAGE_CACHE=/path/to/cache.json bash tests/acceptance.sh` 指定其它缓存，缓存不可用时自动改用内置合成数据。
+
+> 提 PR 请改 `build/` 下的源文件，并在描述里附上 `bash tests/acceptance.sh` 的输出。
 
 ## 📜 版本历史
 
