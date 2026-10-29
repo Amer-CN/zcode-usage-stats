@@ -25,7 +25,7 @@
 	/* 类目色：6 个跨色相，承载模型身份；两两色距 >=60 保证一眼可分 */
 	--c0: #C62828; --c1: #C77800; --c2: #2F7D4F; --c3: #1D5FD0; --c4: #6D4AC4; --c5: #0E7C86;
 	/* 序数色：单色相蓝阶，明度 = 用量大小（浅→深） */
-	--q1: #9CBEE6; --q2: #5B8FD4; --q3: #2C6BC4; --q4: #123C74;
+	--q1: #6E9BCB; --q2: #4A7BB5; --q3: #2C5F9E; --q4: #123C74;
 
 	display: flex; flex-direction: column; gap: 32px;
 	padding: 0; color: var(--ink);
@@ -48,7 +48,7 @@ body[data-ds-dark-theme] .ust-root {
 	/* 类目色（暗色主题）：同 6 色相提亮，暗底对比 >=3:1 */
 	--c0: #FF6B6B; --c1: #FFA53D; --c2: #52C77A; --c3: #5B9DFF; --c4: #A78BFA; --c5: #2DD4BF;
 	/* 序数色（暗色主题）：越亮 = 用量越大 */
-	--q1: #2A4C7A; --q2: #3F6EA8; --q3: #5F97D4; --q4: #9CC4EE;
+	--q1: #3F6EA8; --q2: #5B8FD4; --q3: #7FB2E6; --q4: #B8D8F5;
 }
 .ust-root *, .ust-root *::before, .ust-root *::after { box-sizing: border-box; }
 .ust-root svg text { font-family: inherit; font-variant-numeric: tabular-nums; }

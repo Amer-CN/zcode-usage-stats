@@ -89,12 +89,21 @@ window.__ModuleLoader__.load({
 		const cB = (i) => "ust-cb" + (i % CATN);
 		const cVar = (i) => "var(--c" + (i % CATN) + ")";
 		// 序数色（明度 = 用量大小）：只用于热力图，单色相蓝阶
-		// 档位：0 无用量（quiet）/ 2 少量 / 3 中等 / 4 最多
+		// 档位：0 无用量（quiet）/ 1 少量 / 2 中等 / 3 最多
 		const HEAT_LEVELS = 3;
-		const qLevel = (v, max) => {
-			if (!(v > 0) || !(max > 0)) return 0;
-			const f = v / max;
-			return f > 0.66 ? HEAT_LEVELS : f > 0.33 ? 2 : 1;
+		// 分位阈值：把"有量的点"按用量从低到高均分三档。
+		// 不用 v/max 线性阈值——真实数据里单日峰值常常是次高日的 10 倍以上，
+		// 线性阈值会把除峰值外的所有天都压成同一档（热力图看起来几乎全空）。
+		const quantileThresholds = (values) => {
+			const active = (values || []).filter((v) => v > 0).sort((a, b) => a - b);
+			if (active.length === 0) return [Infinity, Infinity];
+			const at = (p) => active[Math.min(active.length - 1, Math.max(0, Math.floor(p * active.length)))];
+			return [at(1 / 3), at(2 / 3)];
+		};
+		const qLevel = (v, thresholds) => {
+			if (!(v > 0)) return 0;
+			if (!thresholds || !Number.isFinite(thresholds[0])) return 1;
+			return v > thresholds[1] ? HEAT_LEVELS : v > thresholds[0] ? 2 : 1;
 		};
 		const qF = (lv) => "ust-qf" + lv;
 		const qB = (lv) => "ust-qb" + lv;
@@ -279,7 +288,10 @@ window.__ModuleLoader__.load({
 				let maxWeek = 0;
 				weekCells.forEach((w) => { if (w.total > maxWeek) maxWeek = w.total; });
 				const cols = Math.max(1, ...cells.map((c) => c.col + 1), ...weekCells.map((w) => w.col + 1));
-				return { cells, cols, maxDay, maxCum, weekCells, maxWeek, peak, today };
+				const dayLevels = quantileThresholds(cells.map((c) => c.total));
+				const cumLevels = quantileThresholds(cells.map((c) => c.cum));
+				const weekLevels = quantileThresholds(weekCells.map((w) => w.total));
+				return { cells, cols, maxDay, maxCum, weekCells, maxWeek, peak, today, dayLevels, cumLevels, weekLevels };
 			}, [days, wnd]);
 
 			const isWeekly = mode === "weekly";
@@ -323,7 +335,9 @@ window.__ModuleLoader__.load({
 			});
 			// 半径上限 = 间距的 42%：相邻点直径不超过间距，永不重叠
 			const rMax = pitch * 0.42;
-			const rOf = (v, max) => (v > 0 && max > 0 ? Math.max(Math.min(2.4, rMax), Math.sqrt(v / max) * rMax) : 0);
+			// 最小可见半径：在命中格面积 ≥ 最小点 4 倍的前提下尽量放大（窄面板自动收小）
+			const rMin = Math.max(2.4, Math.min(3.2, pitch * 0.27));
+			const rOf = (v, max) => (v > 0 && max > 0 ? Math.max(Math.min(rMin, rMax), Math.sqrt(v / max) * rMax) : 0);
 			const cx = (col) => PAD_L + col * pitch + pitch / 2;
 			const cy = (row) => PAD_T + row * pitch + pitch / 2;
 
@@ -335,7 +349,7 @@ window.__ModuleLoader__.load({
 					if (!(w.total > 0)) {
 						marks.push(element("circle", { key: "q" + i, className: "ust-dot-quiet", cx: x, cy: y, r: 1.4 }));
 					} else {
-						marks.push(element("circle", { key: "w" + i, className: qF(qLevel(w.total, maxWk)), cx: x, cy: y, r: rOf(w.total, maxWk) }));
+						marks.push(element("circle", { key: "w" + i, className: qF(qLevel(w.total, model.weekLevels)), cx: x, cy: y, r: rOf(w.total, maxWk) }));
 					}
 					marks.push(hitCell(i, 0, "h" + i, title, w.total > 0 ? fmtFull(w.total) + " tokens" : "当周无用量"));
 					// 日期标签放在点带下方，不与点重叠
@@ -346,7 +360,7 @@ window.__ModuleLoader__.load({
 					const x = cx(colOf(c)), y = cy(rowOf(c));
 					const v = isCum ? c.cum : c.total;
 					if (v > 0) {
-						marks.push(element("circle", { key: "d" + i, className: qF(qLevel(v, maxVal)), cx: x, cy: y, r: rOf(v, maxVal) }));
+						marks.push(element("circle", { key: "d" + i, className: qF(qLevel(v, isCum ? model.cumLevels : model.dayLevels)), cx: x, cy: y, r: rOf(v, maxVal) }));
 					} else {
 						marks.push(element("circle", { key: "q" + i, className: "ust-dot-quiet", cx: x, cy: y, r: 1.4 }));
 					}

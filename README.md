@@ -8,7 +8,7 @@
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=19&pause=1200&color=1D5FD0&center=true&vCenter=true&width=620&lines=%E5%85%A8%E5%8E%86%E5%8F%B2%E4%BC%9A%E8%AF%9D%E6%9C%AC%E5%9C%B0%E6%89%AB%E6%8F%8F%EF%BC%8C%E4%B8%80%E7%9C%BC%E7%9C%8B%E6%87%82%20Token%20%E8%8A%B1%E5%9C%A8%E5%93%AA;%E7%94%A8%E9%87%8F%E8%B6%8B%E5%8A%BF%20%C3%97%20%E6%A8%A1%E5%9E%8B%E4%BB%AA%E8%A1%A8%E7%9B%98%20%C3%97%20%E6%B4%BB%E8%B7%83%E7%83%AD%E5%8A%9B%E5%9B%BE;%E7%BA%AF%E6%9C%AC%E5%9C%B0%E7%BB%9F%E8%AE%A1%20%C2%B7%20%E4%B8%8D%E4%B8%8A%E4%BC%A0%20%C2%B7%20%E9%9B%B6%E5%9B%BE%E8%A1%A8%E5%BA%93%E4%BE%9D%E8%B5%96)](https://git.io/typing-svg)
 
-[![Version](https://img.shields.io/badge/Version-v0.1.0-1D5FD0?style=for-the-badge)](#-版本历史)
+[![Version](https://img.shields.io/badge/Version-v0.1.2-1D5FD0?style=for-the-badge)](#-版本历史)
 [![DSH Plugin](https://img.shields.io/badge/DSH-Plugin-0E7C86?style=for-the-badge)](#-安装)
 [![图表](https://img.shields.io/badge/图表-手写SVG-F59E0B?style=for-the-badge)](#-设计与实现)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](#-许可与致谢)
@@ -43,10 +43,11 @@
 前置：已安装 `@deepseek-ai/dsh`（及 DSH 插件命令依赖的 `pnpm`）。
 
 ```bash
-dsh plugin --profile web add zcode-usage-stats
+dsh plugin --profile web add github:Amer-CN/zcode-usage-stats
 ```
 
-> 或从 GitHub 源安装：`dsh plugin --profile web add github:Amer-CN/zcode-usage-stats`。
+> npm 包 `zcode-usage-stats` 目前最新仍是 0.1.0（旧版）；0.1.2 上传 npm 后可直接改用
+> `dsh plugin --profile web add zcode-usage-stats`。
 
 安装后重启 DSH 进程，打开 **设置 → 使用统计** 即可看到统计页面。
 
@@ -59,11 +60,11 @@ dsh plugin --profile web add zcode-usage-stats
 ## ⚙️ 工作原理
 
 ```
-~/.dsh 会话文件
+~/.dsh/sessions 会话日志（session[.vN].jsonl[.zstd]）
         │
-        ▼  sessionPersistence 全量枚举 + 回放事件
+        ▼  直接读取；多帧 zstd 逐帧解压
 按天 / 按小时 / 按模型聚合 ──► 内存 + 磁盘双层缓存（SWR）
-        │
+        │                      └─ 按会话文件 size+mtime 增量，只重读追加过的会话
         ▼
 GET /api/usage-stats（过宿主信任栅栏：Host/Origin + cookie）
         │
@@ -79,22 +80,24 @@ GET /api/usage-stats（过宿主信任栅栏：Host/Origin + cookie）
 | **配色** | 自研双轨色板：类目色 6 个跨色相承载模型身份，序数色单色相明度阶承载用量大小；两套主题均满足 WCAG AA，类目色两两色距核算保证一眼可分 |
 | **排版** | 固定 px 字阶 + 4 的倍数间距阶梯；图表按 ResizeObserver 实测容器宽度 1:1 出图，不做等比缩放，字号真实可读 |
 | **命中区** | 视觉元素不绑事件：热力图逐格透明矩形、刻度环整圈扇形 path，悬停不闪烁 |
-| **服务端** | 复用宿主 `sessionPersistence` 聚合；内存 + 磁盘双层缓存，SWR 过期后台刷新，首屏不因全量扫描卡顿 |
+| **服务端** | 直接读取会话日志并逐帧解压 zstd（Electron 自带 zstd 只解第一帧，故自行切帧）；按文件 size+mtime 增量，冷扫描 20–30s、增量刷新 <2s；内存 + 磁盘双层缓存，SWR 过期后台刷新 |
 | **安全** | `/api/usage-stats` 自行通过宿主 `connection.requestRejection` 信任栅栏鉴权 |
 
 ## 🔢 数据口径
 
 | 指标 | 口径 |
 |------|------|
-| Token 用量 | 以 `assistant/message` 事件携带的全量 `usage` 为准（input + output + cacheRead + cacheWrite），按 `turn:step` 去重防重复计数 |
+| Token 用量 | 以 `assistant/message` 事件携带的全量 `usage` 为准（input + output + cacheRead + cacheWrite）；流式 `assistant/chunk` 的 usage 不重复计 |
 | Turns | 以 `step/end` 事件按新 turn 计数（覆盖 completed / failed / cancelled） |
-| 模型归属 | 优先取消息自身 `model`，回退 `request/context` 当前模型，再回退归并为 `other` |
+| 模型归属 | 优先取消息自身 `message.source.model`（逐条准确），回退事件 `data.model` / `request/context` 当前模型，再回退 `other` |
 | 活跃日 | 当天有 ≥1 条 usage 事件；连续天数按活跃日相邻日推算 |
 
 ## 🤝 兼容性
 
-- 针对 DSH 开发者预览版开发，锁定 `@deepseek-ai/dsh >= 0.1.0-rc.5`。
-- 依赖 DSH 宿主提供的 `sessionPersistence`、`webServer`、`connection` 服务，以及客户端运行时 `@deepseek-ai/dsh-client-runtime`、`@deepseek-ai/dsh-client-ui-slots`。
+- 面向 DSH `>= 0.2.1-rc.1`（已在 `0.2.1-rc.3` 桌面版验证）；`package.json` 的 `dsh.engines` 会阻止不兼容版本加载。
+- 依赖宿主提供的 `webServer`、`connection` 服务；会话数据直接读 `$DSH_HOME/sessions`（默认 `~/.dsh/sessions`）。
+- 会话日志支持 v0–v4 与 zstd / 明文；同一会话目录迁移残留的 v3+v4 会按版本去重，不会重复计数。
+- 不再依赖旧版客户端包 `@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots`。
 
 ## 🗂️ 仓库结构
 
@@ -115,14 +118,15 @@ zcode-usage-stats/
 │   ├── panel.css         # 前端真源：样式与配色变量
 │   └── assemble.cjs      # 合成脚本：body.js + panel.css → client.new.js
 ├── tests/
-│   ├── acceptance.sh     # 验收门禁：15 项检查（一条命令跑完）
+│   ├── acceptance.sh     # 前端验收门禁：15 项检查（一条命令跑完）
 │   ├── harness.cjs       # 渲染挂具：模拟容器宽度渲染出预览 HTML
 │   ├── assert.cjs        # 几何断言：三张图的尺寸/可读性
 │   ├── contrast.cjs      # WCAG 对比度核算（明暗两套）
 │   ├── preset-conformance.cjs  # custom 色板合规校验
+│   ├── host-scan.cjs     # 宿主侧回归：多帧 zstd / 增量 / 去重 / 超时续扫
 │   └── preview-*.html    # 渲染产物（gitignore）
 └── lib/
-    ├── index.mjs         # 宿主侧：扫描全历史会话 + 聚合 + 双层缓存 + API
+    ├── index.mjs         # 宿主侧：读取会话日志 + 增量聚合 + 双层缓存 + API
     └── client.js         # 前端合成产物（勿直接编辑，见「从源码构建」）
 ```
 
@@ -140,21 +144,28 @@ node build/assemble.cjs
 # 3. 用合成结果覆盖部署文件
 cp build/client.new.js lib/client.js
 
-# 4. 验收（15 项必须全过）
+# 4. 前端验收（15 项必须全过）
 bash tests/acceptance.sh
+
+# 5. 宿主侧回归（Node 24 / Electron 运行时均可）
+node tests/host-scan.cjs
 ```
 
 验收脚本会按真实面板宽度渲染出预览 HTML（`tests/preview-*.html`）并跑几何断言、WCAG 对比度与色板合规检查。默认读取本机 `~/.dsh` 下的用量缓存；可用 `USAGE_CACHE=/path/to/cache.json bash tests/acceptance.sh` 指定其它缓存，缓存不可用时自动改用内置合成数据。
+
+宿主侧改动需要重启 DSH 进程才会生效（前端 `lib/client.js` 是热更新，刷新页面即可）。`tests/host-scan.cjs` 用合成会话覆盖多帧 zstd、v3/v4 去重、增量重读、半帧容错与超时续扫。
 
 > 提 PR 请改 `build/` 下的源文件，并在描述里附上 `bash tests/acceptance.sh` 的输出。
 
 ## 📜 版本历史
 
 <details>
-<summary><b>当前 v0.1.0</b>（2026-09-13）· 初始开源版本</summary>
+<summary><b>当前 v0.1.2</b>（2026-10-29）· DSH 0.2.1 适配与性能修复</summary>
 
 | 版本 | 内容 |
 |------|------|
+| v0.1.2 | 适配 DSH 0.2.1-rc.3：宿主侧改为直接读取会话日志并逐帧解压多帧 zstd（Electron 只解首帧会导致数据为空/超时），按文件 size+mtime 增量扫描；修复 1400+ 会话时 60s 超时只回传约 10% 数据、缓存停在旧日期的问题；模型归属改用 `message.source.model`；v3/v4 迁移残留去重；热力图改为分位分档并修正低档点色/最小半径，避免真实数据下热力图看起来全空 |
+| v0.1.1 | 缓存目录跟随当前 profile（不再硬编码 `profiles/web`），读取旧路径做一次性迁移；补充 `dsh.engines` / 兼容性声明 |
 | v0.1.0 | 初始开源版本：以 [qianxiao1213/zcode-usage-stats](https://github.com/qianxiao1213/zcode-usage-stats) 原版为基线，重写全部图表界面与配色（活跃分布 / 用量趋势 / 模型用量三图 + 自研双轨色板），补齐双主题截图与文档 |
 
 </details>
