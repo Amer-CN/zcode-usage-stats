@@ -1,0 +1,54 @@
+{
+  "format": 1,
+  "title": {
+    "en": "Amer's DSH plugins",
+    "zh": "Amer 的 DSH 插件"
+  },
+  "description": {
+    "en": "Community plugins for DeepSeek Harness maintained by Amer-CN.",
+    "zh": "Amer-CN 维护的 DeepSeek Harness 社区插件。"
+  },
+  "metadata": {},
+  "plugins": [
+    {
+      "name": "zcode-usage-stats",
+      "title": {
+        "en": "Usage Statistics",
+        "zh": "使用统计"
+      },
+      "description": {
+        "en": "Token usage statistics for DeepSeek Harness: daily and hourly trends, per-model breakdown, activity heatmap, and session/message totals.",
+        "zh": "DeepSeek Harness 的 Token 用量统计：按天/按小时趋势、模型用量、活跃热力图，以及会话/消息累计。"
+      },
+      "author": "Amer-CN",
+      "homepage": "https://github.com/Amer-CN/zcode-usage-stats",
+      "repository": {
+        "url": "https://github.com/Amer-CN/zcode-usage-stats"
+      },
+      "metadata": {
+        "keywords": [
+          "dsh-plugin",
+          "token",
+          "usage",
+          "statistics",
+          "使用统计"
+        ],
+        "labels": [],
+        "sortKeys": {}
+      },
+      "versions": [
+        {
+          "version": "0.1.2",
+          "publishTimestamp": 1793312622,
+          "source": {
+            "type": "npm",
+            "registry": "https://registry.npmjs.org/"
+          },
+          "engines": {
+            "dsh": ">=0.2.1-rc.1"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -51,6 +51,22 @@ dsh plugin --profile web add zcode-usage-stats
 
 安装后重启 DSH 进程，打开 **设置 → 使用统计** 即可看到统计页面。
 
+### 通过插件市场「发现」安装（可选）
+
+DSH 0.2.1 的「发现」市场是实验性功能，默认不启用、索引源为空。把本仓库的市场索引加入后，可以直接在「发现」里搜索安装：
+
+1. 启用 DSH 的实验性插件市场（若你的版本提供「发现」标签页）
+2. 插件 → **发现** → **添加索引源**
+3. 填入：
+
+```text
+https://raw.githubusercontent.com/Amer-CN/zcode-usage-stats/main/plugin-market.json
+```
+
+4. 搜索 `zcode-usage-stats` 并安装
+
+> 如果没有「发现」标签页，说明该实验性组合包未启用，直接使用上面的「添加插件」按包名安装即可。索引是第三方声明，实际安装版本由 npm 包 manifest 决定；本索引固定从 npm 官方源读取 0.1.2。
+
 ## 🚀 使用
 
 - 顶部切换时间范围；**「全部」**显示自使用以来的所有数据。
@@ -108,6 +124,7 @@ GET /api/usage-stats（过宿主信任栅栏：Host/Origin + cookie）
 zcode-usage-stats/
 ├── package.json          # 插件清单（dsh 客户端注入声明）
 ├── cordis.patch.yml      # DSH 补丁声明
+├── plugin-market.json    # DSH「发现」市场索引（format 1）
 ├── LICENSE               # MIT
 ├── README.md             # 本文件
 ├── assets/
@@ -154,6 +171,8 @@ node tests/host-scan.cjs
 验收脚本会按真实面板宽度渲染出预览 HTML（`tests/preview-*.html`）并跑几何断言、WCAG 对比度与色板合规检查。默认读取本机 `~/.dsh` 下的用量缓存；可用 `USAGE_CACHE=/path/to/cache.json bash tests/acceptance.sh` 指定其它缓存，缓存不可用时自动改用内置合成数据。
 
 宿主侧改动需要重启 DSH 进程才会生效（前端 `lib/client.js` 是热更新，刷新页面即可）。`tests/host-scan.cjs` 用合成会话覆盖多帧 zstd、v3/v4 去重、增量重读、半帧容错与超时续扫。
+
+> 发布新版本时记得同步 `plugin-market.json` 里对应版本的 `version` 与 `publishTimestamp`，否则「发现」市场仍会指向旧版本。
 
 > 提 PR 请改 `build/` 下的源文件，并在描述里附上 `bash tests/acceptance.sh` 的输出。
 
