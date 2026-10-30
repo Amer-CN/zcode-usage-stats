@@ -43,11 +43,11 @@
 前置：已安装 `@deepseek-ai/dsh`（及 DSH 插件命令依赖的 `pnpm`）。
 
 ```bash
-dsh plugin --profile web add github:Amer-CN/zcode-usage-stats
+dsh plugin --profile web add zcode-usage-stats
 ```
 
-> npm 包 `zcode-usage-stats` 目前最新仍是 0.1.0（旧版）；0.1.2 上传 npm 后可直接改用
-> `dsh plugin --profile web add zcode-usage-stats`。
+> 或从 GitHub 源安装：`dsh plugin --profile web add github:Amer-CN/zcode-usage-stats`。
+> 0.1.2 起要求 DSH `>= 0.2.1-rc.1`。
 
 安装后重启 DSH 进程，打开 **设置 → 使用统计** 即可看到统计页面。
 
