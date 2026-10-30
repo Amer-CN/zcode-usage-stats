@@ -48,6 +48,9 @@ dsh plugin --profile web add zcode-usage-stats
 
 > 或从 GitHub 源安装：`dsh plugin --profile web add github:Amer-CN/zcode-usage-stats`。
 > 0.1.2 起要求 DSH `>= 0.2.1-rc.1`。
+>
+> 国内镜像可能晚于 npm 官方源同步；若装到旧版，可临时把 `npm_config_registry`
+> 指向 `https://registry.npmjs.org/`，或改用 GitHub 源。
 
 安装后重启 DSH 进程，打开 **设置 → 使用统计** 即可看到统计页面。
 
@@ -179,11 +182,11 @@ node tests/host-scan.cjs
 ## 📜 版本历史
 
 <details>
-<summary><b>当前 v0.1.2</b>（2026-10-29）· DSH 0.2.1 适配与性能修复</summary>
+<summary><b>当前 v0.1.2</b>（2026-10-30）· DSH 0.2.1 适配与性能修复</summary>
 
 | 版本 | 内容 |
 |------|------|
-| v0.1.2 | 适配 DSH 0.2.1-rc.3：宿主侧改为直接读取会话日志并逐帧解压多帧 zstd（Electron 只解首帧会导致数据为空/超时），按文件 size+mtime 增量扫描；修复 1400+ 会话时 60s 超时只回传约 10% 数据、缓存停在旧日期的问题；模型归属改用 `message.source.model`；v3/v4 迁移残留去重；热力图改为分位分档并修正低档点色/最小半径，避免真实数据下热力图看起来全空 |
+| v0.1.2 | 适配 DSH 0.2.1-rc.3：宿主侧改为直接读取会话日志并逐帧解压多帧 zstd（Electron 只解首帧会导致数据为空/超时），按文件 size+mtime 增量扫描；修复 1400+ 会话时 60s 超时只回传约 10% 数据、缓存停在旧日期的问题；模型归属改用 `message.source.model`；v3/v4 迁移残留去重；热力图改为分位分档并修正低档点色/最小半径，避免真实数据下热力图看起来全空；npm 0.1.2 发布并附 DSH「发现」市场索引 |
 | v0.1.1 | 缓存目录跟随当前 profile（不再硬编码 `profiles/web`），读取旧路径做一次性迁移；补充 `dsh.engines` / 兼容性声明 |
 | v0.1.0 | 初始开源版本：以 [qianxiao1213/zcode-usage-stats](https://github.com/qianxiao1213/zcode-usage-stats) 原版为基线，重写全部图表界面与配色（活跃分布 / 用量趋势 / 模型用量三图 + 自研双轨色板），补齐双主题截图与文档 |
 
