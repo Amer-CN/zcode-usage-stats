@@ -140,7 +140,7 @@ function ser(node, out, react) {
   const react = makeReact();
   const mod = def.factory((n) => { if (n === 'react') return react; throw new Error('mod ' + n); });
   let View = null;
-  mod.apply({ effect: () => {}, slots: { inject: (n, cb) => cb(), register: (a, c) => { View = c; } } });
+  mod.apply({ effect: () => {}, slots: { inject: (n, cb) => cb(), register: (a, c) => { if (a.name === 'settings.section') View = c; } } });
   const html = [];
   for (let pass = 0; pass < 6; pass++) {
     DIRTY = false; html.length = 0;

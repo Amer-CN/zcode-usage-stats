@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Usage statistics",
+    "description": "Token usage across every session: daily and hourly trends, per-model breakdown, an activity heatmap, and session and message totals."
+  }
+}
