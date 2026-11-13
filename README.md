@@ -8,7 +8,7 @@
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=19&pause=1200&color=1D5FD0&center=true&vCenter=true&width=620&lines=%E5%85%A8%E5%8E%86%E5%8F%B2%E4%BC%9A%E8%AF%9D%E6%9C%AC%E5%9C%B0%E6%89%AB%E6%8F%8F%EF%BC%8C%E4%B8%80%E7%9C%BC%E7%9C%8B%E6%87%82%20Token%20%E8%8A%B1%E5%9C%A8%E5%93%AA;%E7%94%A8%E9%87%8F%E8%B6%8B%E5%8A%BF%20%C3%97%20%E6%A8%A1%E5%9E%8B%E4%BB%AA%E8%A1%A8%E7%9B%98%20%C3%97%20%E6%B4%BB%E8%B7%83%E7%83%AD%E5%8A%9B%E5%9B%BE;%E7%BA%AF%E6%9C%AC%E5%9C%B0%E7%BB%9F%E8%AE%A1%20%C2%B7%20%E4%B8%8D%E4%B8%8A%E4%BC%A0%20%C2%B7%20%E9%9B%B6%E5%9B%BE%E8%A1%A8%E5%BA%93%E4%BE%9D%E8%B5%96)](https://git.io/typing-svg)
 
-[![Version](https://img.shields.io/badge/Version-v0.1.3-1D5FD0?style=for-the-badge)](#-版本历史)
+[![Version](https://img.shields.io/badge/Version-v0.1.4-1D5FD0?style=for-the-badge)](#-版本历史)
 [![DSH Plugin](https://img.shields.io/badge/DSH-Plugin-0E7C86?style=for-the-badge)](#-安装)
 [![图表](https://img.shields.io/badge/图表-手写SVG-F59E0B?style=for-the-badge)](#-设计与实现)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](#-许可与致谢)
@@ -47,9 +47,9 @@ dsh plugin --profile web add zcode-usage-stats
 ```
 
 > 或从 GitHub 源安装：`dsh plugin --profile web add github:Amer-CN/zcode-usage-stats`。
-> 0.1.2 起要求 DSH `>= 0.2.1-rc.1`；0.1.3 已在 DSH 0.2.2-rc.1 桌面版实测通过。
+> 0.1.2 起要求 DSH `>= 0.2.1-rc.1`；0.1.4 已在 DSH 0.2.2-rc.3 桌面版实测通过。
 >
-> npm 官方源当前 `latest = 0.1.2`；**0.1.3 只在 GitHub 源提供**（新增导航图标与插件列表展示信息）。
+> npm 官方源当前 `latest = 0.1.2`；**0.1.3 及以后只在 GitHub 源提供**（导航图标、插件列表展示信息、0.2.2-rc.3 复核）。
 > 国内镜像可能晚于 npm 官方源同步；若装到旧版，可临时把 `npm_config_registry`
 > 指向 `https://registry.npmjs.org/`，或改用 GitHub 源。
 
@@ -114,7 +114,7 @@ GET /api/usage-stats（过宿主信任栅栏：Host/Origin + cookie）
 
 ## 🤝 兼容性
 
-- 面向 DSH `>= 0.2.1-rc.1`（已在 `0.2.1-rc.3` 与 `0.2.2-rc.1` 桌面版验证）；`package.json` 的 `engines.dsh` 由宿主按「预发布也参与比较」的 SemVer 判定。
+- 面向 DSH `>= 0.2.1-rc.1`（已在 `0.2.1-rc.3`、`0.2.2-rc.1`、`0.2.2-rc.3` 桌面版验证）；`package.json` 的 `engines.dsh` 由宿主按「预发布也参与比较」的 SemVer 判定。
 - 0.2.2 起设置导航新增 `settings.section.icon` 座位：本插件会给「使用统计」贡献自己的图标；旧版没有该座位时静默跳过，不影响加载。
 - `locale/*.json`（`meta.title` / `meta.description`）与 `icon.svg` 供插件列表与市场读取展示信息，不需要激活插件。
 - 依赖宿主提供的 `webServer`、`connection` 服务；会话数据直接读 `$DSH_HOME/sessions`（默认 `~/.dsh/sessions`）。
@@ -189,10 +189,11 @@ node tests/host-scan.cjs
 ## 📜 版本历史
 
 <details>
-<summary><b>当前 v0.1.3</b>（2026-11-07）· DSH 0.2.2 兼容性复核与展示适配</summary>
+<summary><b>当前 v0.1.4</b>（2026-11-14）· DSH 0.2.2-rc.3 复核</summary>
 
 | 版本 | 内容 |
 |------|------|
+| v0.1.4 | 复核 DSH 0.2.2-rc.3：`v0.2.2-rc.1` 升级指南 25 条无一命中本插件（会话 v4 日志格式、`webServer` 精确路由、`connection.requestRejection`、`settings.section` / `settings.section.icon` 座位均未变），装载器里 `usage-stats` 条目状态 `active`；真机 1570 个会话全量重扫，0 读取失败、含当天数据。**无代码改动**，只补兼容性声明 |
 | v0.1.3 | 复核 DSH 0.2.2-rc.1：宿主服务（`webServer` 精确路由 / `connection.requestRejection` / `profileContext`）、客户端模块与 `settings.section` 座位、会话 v4 日志格式均无破坏性变更，实测全量 1504 个会话 0 读取失败；新增 `settings.section.icon` 导航图标（0.2.2 新座位，旧版自动跳过）；补充 `locale/*.json` 展示元数据与 `icon.svg`，插件列表不再回退成包名和默认图；兼容性声明补 `0.2.2-rc.1`。npm 官方源停在 0.1.2，0.1.3 以 GitHub tag `v0.1.3` 发布 |
 | v0.1.2 | 适配 DSH 0.2.1-rc.3：宿主侧改为直接读取会话日志并逐帧解压多帧 zstd（Electron 只解首帧会导致数据为空/超时），按文件 size+mtime 增量扫描；修复 1400+ 会话时 60s 超时只回传约 10% 数据、缓存停在旧日期的问题；模型归属改用 `message.source.model`；v3/v4 迁移残留去重；热力图改为分位分档并修正低档点色/最小半径，避免真实数据下热力图看起来全空；npm 0.1.2 发布并附 DSH「发现」市场索引 |
 | v0.1.1 | 缓存目录跟随当前 profile（不再硬编码 `profiles/web`），读取旧路径做一次性迁移；补充 `dsh.engines` / 兼容性声明 |
