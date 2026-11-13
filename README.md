@@ -118,6 +118,8 @@ GET /api/usage-stats（过宿主信任栅栏：Host/Origin + cookie）
 - 0.2.2 起设置导航新增 `settings.section.icon` 座位：本插件会给「使用统计」贡献自己的图标；旧版没有该座位时静默跳过，不影响加载。
 - `locale/*.json`（`meta.title` / `meta.description`）与 `icon.svg` 供插件列表与市场读取展示信息，不需要激活插件。
 - 依赖宿主提供的 `webServer`、`connection` 服务；会话数据直接读 `$DSH_HOME/sessions`（默认 `~/.dsh/sessions`）。
+- 扫描用 `worker_threads` 并发（默认 CPU−1、封顶 4）：`USAGE_STATS_WORKERS=<n>` 改线程数，`USAGE_STATS_NO_WORKERS=1` 退回主线程。线程起不来会自动回退，不影响出数。
+  > 实测该运行时的原生 zstd 解压是**进程内串行**的（多线程/多 worker 都不加速），所以冷扫描剩下的时间基本就是解压本身；线程池主要吃到 JSON 解析并行和不阻塞宿主事件循环。
 - 会话日志支持 v0–v4 与 zstd / 明文；同一会话目录迁移残留的 v3+v4 会按版本去重，不会重复计数。
 - 不再依赖旧版客户端包 `@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots`。
 
@@ -193,7 +195,7 @@ node tests/host-scan.cjs
 
 | 版本 | 内容 |
 |------|------|
-| v0.1.4 | 复核 DSH 0.2.2-rc.3：`v0.2.2-rc.1` 升级指南 25 条无一命中本插件（会话 v4 日志格式、`webServer` 精确路由、`connection.requestRejection`、`settings.section` / `settings.section.icon` 座位均未变），装载器里 `usage-stats` 条目状态 `active`；真机 1570 个会话全量重扫，0 读取失败、含当天数据。**无代码改动**，只补兼容性声明 |
+| v0.1.4 | ① 复核 DSH 0.2.2-rc.3：`v0.2.2-rc.1` 升级指南 25 条无一命中本插件（会话 v4 日志、`webServer` 精确路由、`connection.requestRejection`、`settings.section` / `.icon` 座位均未变），装载器 `usage-stats` 条目 `active`，真机 1570 会话 0 读取失败。② 扫描提速：解析实现拆到 `lib/scan-core.mjs`，「读文件+解压+解析」搬进 worker 线程池（默认 CPU−1、封顶 4，`USAGE_STATS_WORKERS` 可覆盖，`USAGE_STATS_NO_WORKERS=1` 关掉），JSON.parse 前按事件类型字面量预过滤；冷扫描 **42.7s → 23.0s**（1560 会话 / 887MB 压缩 / 3.45GB 解压量）。③ 首屏不再干等：无缓存时立刻回 `pending` + 扫描进度，前端轮询填充，**首屏响应 42.7s → 1ms**，刷新按钮同样走轮询 |
 | v0.1.3 | 复核 DSH 0.2.2-rc.1：宿主服务（`webServer` 精确路由 / `connection.requestRejection` / `profileContext`）、客户端模块与 `settings.section` 座位、会话 v4 日志格式均无破坏性变更，实测全量 1504 个会话 0 读取失败；新增 `settings.section.icon` 导航图标（0.2.2 新座位，旧版自动跳过）；补充 `locale/*.json` 展示元数据与 `icon.svg`，插件列表不再回退成包名和默认图；兼容性声明补 `0.2.2-rc.1`。npm 官方源停在 0.1.2，0.1.3 以 GitHub tag `v0.1.3` 发布 |
 | v0.1.2 | 适配 DSH 0.2.1-rc.3：宿主侧改为直接读取会话日志并逐帧解压多帧 zstd（Electron 只解首帧会导致数据为空/超时），按文件 size+mtime 增量扫描；修复 1400+ 会话时 60s 超时只回传约 10% 数据、缓存停在旧日期的问题；模型归属改用 `message.source.model`；v3/v4 迁移残留去重；热力图改为分位分档并修正低档点色/最小半径，避免真实数据下热力图看起来全空；npm 0.1.2 发布并附 DSH「发现」市场索引 |
 | v0.1.1 | 缓存目录跟随当前 profile（不再硬编码 `profiles/web`），读取旧路径做一次性迁移；补充 `dsh.engines` / 兼容性声明 |

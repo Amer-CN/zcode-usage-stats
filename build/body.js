@@ -740,15 +740,29 @@ window.__ModuleLoader__.load({
 			const [showCustom, setShowCustom] = react.useState(false);
 			const [from, setFrom] = react.useState("");
 			const [to, setTo] = react.useState("");
+			const [progress, setProgress] = react.useState(null);
 
 			const load = react.useCallback(async (force) => {
 				setLoading(true);
 				try {
-					const res = await fetch("/api/usage-stats" + (force ? "?refresh=1" : ""), { credentials: "same-origin" });
-					if (!res.ok) throw new Error("HTTP " + res.status);
-					const json = await res.json();
+					let path = "/api/usage-stats" + (force ? "?refresh=1" : "");
+					let json = null;
+					for (let attempt = 0; ; attempt++) {
+						const res = await fetch(path, { credentials: "same-origin" });
+						if (!res.ok) throw new Error("HTTP " + res.status);
+						json = await res.json();
+						// 服务端首次扫描/强制刷新改成「先回 pending + 进度」，这里轮询等结果，
+						// 首屏不再干等整轮扫描（冷扫描 20s+ 时尤其明显）
+						const waiting = json && (json.pending === true || (force && json.refreshing === true));
+						if (!waiting) break;
+						if (json.progress && json.progress.total) setProgress(json.progress);
+						if (attempt > 400) throw new Error("扫描耗时过长，请稍后点刷新重试");
+						await new Promise((resolve) => setTimeout(resolve, 1200));
+						path = "/api/usage-stats";
+					}
 					if (!json || json.ok === false) throw new Error((json && json.error) || "响应异常");
 					setData(json);
+					setProgress(null);
 					setError(null);
 				} catch (e) {
 					setError(String((e && e.message) || e));
@@ -768,10 +782,13 @@ window.__ModuleLoader__.load({
 			}, [range, days]);
 
 			if (loading && !data) {
+				const label = progress && progress.total > 0
+					? "正在扫描会话 " + progress.done + "/" + progress.total
+					: (progress ? "正在准备扫描会话…" : "统计加载中");
 				return element("div", { className: "ust-root" },
 					element("div", { className: "ust-skeleton", style: { width: "40%" } }),
 					element("div", { className: "ust-skeleton", style: { width: "100%", height: 96 } }),
-					element("div", { className: "ust-placeholder" }, "统计加载中"),
+					element("div", { className: "ust-placeholder" }, label),
 				);
 			}
 			if (error && !data) {

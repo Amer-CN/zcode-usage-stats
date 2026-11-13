@@ -97,10 +97,18 @@ function makeRes() {
 }
 
 async function query(search = "") {
-  const res = makeRes();
-  await route.handler({ url: "/api/usage-stats" + search, headers: {} }, res);
-  assert.equal(res.statusCode, 200, "HTTP 200");
-  return JSON.parse(res.body);
+  // 首次扫描/强制刷新现在先回 pending，前端轮询取结果；这里按同样方式等结果
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const res = makeRes();
+    await route.handler({ url: "/api/usage-stats" + search, headers: {} }, res);
+    assert.equal(res.statusCode, 200, "HTTP 200");
+    const json = JSON.parse(res.body);
+    // pending=首屏还在扫；refreshing=后台刷新中。两种都要等，才拿得到目标数据
+    if (!json.pending && !json.refreshing) return json;
+    search = "";
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("扫描未在预期时间内完成");
 }
 
 function totalsOf(data) {
